@@ -360,7 +360,7 @@ if ('clipped_station_gdf' in st.session_state) \
     center_lat = st.session_state['center_lat']
     center_lon = st.session_state['center_lon']
     
-    
+
     # PyDeckで地図を表示
     st.markdown(f"### ベース地図プレビュー")
     station_layer = pdk.Layer(
@@ -455,7 +455,9 @@ if ('clipped_station_gdf' in st.session_state) \
 # =======================
 
 # 出典情報
-st.markdown("<div style='text-align: right; color: #666; font-size: 0.8em;'>【出典】国土数値情報", unsafe_allow_html=True)
+st.markdown('''
+            <div style='text-align: right; color: #666; font-size: 0.8em;'>【出典】国土数値情報，総務省「国勢調査（2020年）」
+            ''', unsafe_allow_html=True)
 
 # ホームに戻るボタン
 st.markdown("---")  # 区切り線
