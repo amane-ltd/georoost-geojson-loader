@@ -1,0 +1,20 @@
+[project]
+name = "georoost-geojson-loader"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "nagampere",email = "nagayohei0508@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas (==2.3)",
+    "geopandas (>=1.1.2,<2.0.0)",
+    "streamlit (>=1.53.1,<2.0.0)",
+    "duckdb (>=1.4.4,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

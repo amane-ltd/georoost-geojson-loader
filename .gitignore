@@ -1,0 +1,10 @@
+.env
+.venv
+.DS_Store
+.streamlit/*
+logs/*
+
+pages/__pycache__/
+components/__pycache__/
+
+!.streamlit/config.toml
