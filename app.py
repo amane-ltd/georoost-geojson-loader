@@ -42,6 +42,10 @@ else:
 st.title("ベース地図のためのGeoJSON保存")
 st.text("処理に時間がかかる場合があります。")
 
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.image("static/images/kepler1_catalog.png")
+
 # 地理院地図の埋め込み
 with st.expander("市区町村境界を確認する", expanded=False):
     html_content = """
