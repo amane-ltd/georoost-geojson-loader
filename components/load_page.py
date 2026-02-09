@@ -21,6 +21,21 @@ def load_page_config():
         icon_image="./static/images/GeoRoost_favicon.ico"
     )
 
+    # サイドバーに株式会社AMANEの会社紹介を追加
+    with st.sidebar.expander("株式会社AMANEについて", expanded=False):
+        st.markdown("""
+        **Mission**  
+        テクノロジーと現場、さまざまなステークホルダーをつなげ、価値がめぐる仕組みを創出し、豊かな都市生活を実現する
+        
+        **事業内容**
+        - [アーバンテック事業開発支援](https://amane.ltd/service/urbantech_business-development_support/)
+        - [アーバンテック自社開発](https://amane.ltd/service/urbantech_in-house-development/)
+        
+        [お問合せはこちら](https://amane.ltd/contact/)
+        """)
+
+
+    # サイドバーにフィードバックフォームを追加
     with st.sidebar.expander("ご意見・感想", expanded=False):
         with st.form("sidebar_memo_form"):
             memo = st.text_area(
@@ -41,7 +56,7 @@ def load_page_config():
     st.sidebar.markdown(
         """
         <div style="text-align: center; font-size: 12px; color: gray;">
-            © 2025 <a href= "https://amane.ltd/" >株式会社AMANE</a>. All rights reserved.
+            © 2026 <a href= "https://amane.ltd/" >株式会社AMANE</a>. All rights reserved.
         </div>
         """, 
         unsafe_allow_html=True

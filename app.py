@@ -39,12 +39,29 @@ else:
 # =======================
 
 # GeoJSONとして保存するテーブルの選択
-st.title("ベース地図のためのGeoJSON保存")
+st.title("ベースマップ作成のためのGeoJSONローダー")
 st.text("処理に時間がかかる場合があります。")
 
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     st.image("static/images/kepler1_catalog.png")
+
+# 簡単な使い方の説明
+with st.expander("使い方の説明", expanded=False):
+    # 1. 都道府県・市区町村の選択
+    # 2. データ取得ボタンをクリック
+    # 3. GeoJSONファイルをダウンロード
+    # 4. Kepler.glなどのGISツールで読み込み
+    # 5. レイヤーを編集
+    # 6. ベースマップを保存
+    st.markdown("""
+    1. **都道府県・市区町村の選択**: 上記のプルダウンメニューから対象地域を選択してください
+    2. **データ取得ボタンをクリック**: 選択した地域のデータを取得します
+    3. **GeoJSONファイルをダウンロード**: まとめてダウンロード、または個別にダウンロードできます
+    4. **[Kepler.gl](https://kepler.gl/demo/)などのGISツールで読み込み**: ダウンロードしたGeoJSONファイルを読み込みます
+    5. **レイヤーを編集**: 色や透明度、表示項目などを調整します
+    6. **ベースマップを保存**: 編集したマップを保存してご利用ください
+    """)
 
 # 地理院地図の埋め込み
 with st.expander("市区町村境界を確認する", expanded=False):
@@ -462,8 +479,4 @@ if ('clipped_station_gdf' in st.session_state) \
 st.markdown('''
             <div style='text-align: right; color: #666; font-size: 0.8em;'>【出典】国土数値情報，総務省「国勢調査（2020年）」
             ''', unsafe_allow_html=True)
-
-# ホームに戻るボタン
-st.markdown("---")  # 区切り線
-if st.button("⬅ Back to Home"): st.switch_page("pages/home.py")
 
