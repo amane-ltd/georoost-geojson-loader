@@ -286,6 +286,96 @@ if ('clipped_station_gdf' in st.session_state) \
     clipped_meshpop_gdf = st.session_state['clipped_meshpop_gdf']
     clipped_mappop_gdf = st.session_state['clipped_mappop_gdf']
 
+    # PyDeckで地図を表示
+    st.markdown(f"### ベース地図プレビュー")
+    # 地図表示のための中心座標取得
+    center_lat = st.session_state['center_lat']
+    center_lon = st.session_state['center_lon']
+    station_layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=clipped_station_gdf,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        line_width_min_pixels=4,
+        get_line_color=[25, 100, 25, 200], # 深緑色
+    )
+    rail_section_layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=clipped_ralisection_gdf,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        line_width_min_pixels=3,
+        get_line_color=[152, 251, 152, 200], # 若草色
+    )
+    bus_stop_layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=clipped_busstop_gdf,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        line_width_min_pixels=4,
+        get_line_color=[0, 0, 255, 200], # 青色
+    )
+    bus_line_layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=clipped_busline_gdf,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        line_width_min_pixels=2,
+        get_line_color=[64, 224, 208, 200], # ターコイズブルー
+    )
+    meshpop_layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=clipped_meshpop_gdf,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        get_line_color=[255, 140, 0, 200], # 灰色
+        line_width_min_pixels=1,
+    )
+    mappop_layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=clipped_mappop_gdf,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        get_line_color=[255, 140, 0, 200], # 灰色
+        line_width_min_pixels=1,
+    )
+    boundary_layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=boundary_gdf,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        line_width_min_pixels=4,
+        get_line_color=[0, 0, 0, 255], # 黒色
+    )
+    initial_view_state = pdk.ViewState(
+        latitude=center_lat,
+        longitude=center_lon,
+        zoom=11,
+        pitch=0,
+    )
+    deck = pdk.Deck(
+        layers=[
+            boundary_layer, 
+            rail_section_layer, 
+            station_layer, 
+            bus_line_layer, 
+            bus_stop_layer,
+            meshpop_layer,
+            mappop_layer
+        ],
+        tooltip={"text": "レイヤー名: {tooltip}"},
+        initial_view_state=initial_view_state,
+        map_style='light'
+    )
+    st.pydeck_chart(deck)
+
     # まとめてzipでダウンロード
     st.markdown("### まとめてGeoJSONファイルをダウンロード")
     zip_filename = f"ベースマップ_{'_'.join(city_levels)}.zip"
@@ -389,98 +479,6 @@ if ('clipped_station_gdf' in st.session_state) \
         width='stretch'
     )
     
-    
-    # 地図表示のための中心座標取得
-    center_lat = st.session_state['center_lat']
-    center_lon = st.session_state['center_lon']
-    
-
-    # PyDeckで地図を表示
-    st.markdown(f"### ベース地図プレビュー")
-    station_layer = pdk.Layer(
-        "GeoJsonLayer",
-        data=clipped_station_gdf,
-        pickable=True,
-        stroked=True,
-        filled=False,
-        line_width_min_pixels=4,
-        get_line_color=[25, 100, 25, 200], # 深緑色
-    )
-    rail_section_layer = pdk.Layer(
-        "GeoJsonLayer",
-        data=clipped_ralisection_gdf,
-        pickable=True,
-        stroked=True,
-        filled=False,
-        line_width_min_pixels=3,
-        get_line_color=[152, 251, 152, 200], # 若草色
-    )
-    bus_stop_layer = pdk.Layer(
-        "GeoJsonLayer",
-        data=clipped_busstop_gdf,
-        pickable=True,
-        stroked=True,
-        filled=False,
-        line_width_min_pixels=4,
-        get_line_color=[0, 0, 255, 200], # 青色
-    )
-    bus_line_layer = pdk.Layer(
-        "GeoJsonLayer",
-        data=clipped_busline_gdf,
-        pickable=True,
-        stroked=True,
-        filled=False,
-        line_width_min_pixels=2,
-        get_line_color=[64, 224, 208, 200], # ターコイズブルー
-    )
-    meshpop_layer = pdk.Layer(
-        "GeoJsonLayer",
-        data=clipped_meshpop_gdf,
-        pickable=True,
-        stroked=True,
-        filled=False,
-        get_line_color=[255, 140, 0, 200], # 灰色
-        line_width_min_pixels=1,
-    )
-    mappop_layer = pdk.Layer(
-        "GeoJsonLayer",
-        data=clipped_mappop_gdf,
-        pickable=True,
-        stroked=True,
-        filled=False,
-        get_line_color=[255, 140, 0, 200], # 灰色
-        line_width_min_pixels=1,
-    )
-    boundary_layer = pdk.Layer(
-        "GeoJsonLayer",
-        data=boundary_gdf,
-        pickable=True,
-        stroked=True,
-        filled=False,
-        line_width_min_pixels=4,
-        get_line_color=[0, 0, 0, 255], # 黒色
-    )
-    initial_view_state = pdk.ViewState(
-        latitude=center_lat,
-        longitude=center_lon,
-        zoom=11,
-        pitch=0,
-    )
-    deck = pdk.Deck(
-        layers=[
-            boundary_layer, 
-            rail_section_layer, 
-            station_layer, 
-            bus_line_layer, 
-            bus_stop_layer,
-            meshpop_layer,
-            mappop_layer
-        ],
-        tooltip={"text": "レイヤー名: {tooltip}"},
-        initial_view_state=initial_view_state,
-        map_style='light'
-    )
-    st.pydeck_chart(deck)
 
     
 
