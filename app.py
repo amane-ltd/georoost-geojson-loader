@@ -116,7 +116,7 @@ if pref_levels:
 else:
     filtered_city_dict = city_dict
 city_levels = st.multiselect(
-    "市区町村名を選択してください", 
+    "市区町村名を選択してください（最大10件）", 
     filtered_city_dict.keys(),
     format_func=lambda x: f"{x} ({filtered_city_dict[x]})"
 )
@@ -125,8 +125,17 @@ if city_levels:
 
 
 # データ取得ボタン
-if st.button("データを取得") and (pref_levels or city_levels):
+if not city_levels:
+    st.info("市区町村を選択してください。")
+elif len(city_levels) > 10:
+    st.error(f"市区町村の選択数が上限（10件）を超えています。現在 {len(city_levels)} 件選択されています。")
+
+if st.button("データを取得", disabled=not city_levels or len(city_levels) > 10):
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+
     # 鉄道駅データを取得
+    status_text.text("鉄道駅データを取得中... (1/7)")
     query_df = con.sql('''
         SELECT
             * EXCLUDE(geom),
@@ -136,8 +145,6 @@ if st.button("データを取得") and (pref_levels or city_levels):
     '''.format(
         'SUBSTRING(jcode, 1, 5) IN ({})'.format(
             ', '.join(f"'{code}'" for code in city_code)
-        ) if city_levels else 'SUBSTRING(pref_code, 1, 2)  IN ({})'.format(
-            ', '.join(f"'{code}'" for code in pref_code)
         )
     )).df()
     clipped_station_gdf = gpd.GeoDataFrame(
@@ -147,8 +154,10 @@ if st.button("データを取得") and (pref_levels or city_levels):
     )
     clipped_station_gdf['tooltip'] = "鉄道駅"
     st.session_state['clipped_station_gdf'] = clipped_station_gdf
+    progress_bar.progress(1 / 7)
 
     # 鉄道路線データを取得
+    status_text.text("鉄道路線データを取得中... (2/7)")
     query_df = con.sql('''
         SELECT
             * EXCLUDE(geom),
@@ -158,8 +167,6 @@ if st.button("データを取得") and (pref_levels or city_levels):
     '''.format(
         'SUBSTRING(jcode, 1, 5) IN ({})'.format(
             ', '.join(f"'{code}'" for code in city_code)
-        ) if city_levels else 'SUBSTRING(pref_code, 1, 2)  IN ({})'.format(
-            ', '.join(f"'{code}'" for code in pref_code)
         )
     )).df()
     clipped_ralisection_gdf = gpd.GeoDataFrame(
@@ -169,8 +176,10 @@ if st.button("データを取得") and (pref_levels or city_levels):
     )
     clipped_ralisection_gdf['tooltip'] = "鉄道路線"
     st.session_state['clipped_ralisection_gdf'] = clipped_ralisection_gdf
+    progress_bar.progress(2 / 7)
 
     # バス停データを取得
+    status_text.text("バス停データを取得中... (3/7)")
     query_df = con.sql('''
         SELECT
             * EXCLUDE(geom),
@@ -180,8 +189,6 @@ if st.button("データを取得") and (pref_levels or city_levels):
     '''.format(
         'SUBSTRING(jcode, 1, 5) IN ({})'.format(
             ', '.join(f"'{code}'" for code in city_code)
-        ) if city_levels else 'SUBSTRING(pref_code, 1, 2)  IN ({})'.format(
-            ', '.join(f"'{code}'" for code in pref_code)
         )
     )).df()
     clipped_busstop_gdf = gpd.GeoDataFrame(
@@ -191,8 +198,10 @@ if st.button("データを取得") and (pref_levels or city_levels):
     )
     clipped_busstop_gdf['tooltip'] = "バス停"
     st.session_state['clipped_busstop_gdf'] = clipped_busstop_gdf
+    progress_bar.progress(3 / 7)
 
     # バス路線データを取得
+    status_text.text("バス路線データを取得中... (4/7)")
     query_df = con.sql('''
         SELECT
             * EXCLUDE(geom),
@@ -202,8 +211,6 @@ if st.button("データを取得") and (pref_levels or city_levels):
     '''.format(
         'SUBSTRING(jcode, 1, 5) IN ({})'.format(
             ', '.join(f"'{code}'" for code in city_code)
-        ) if city_levels else 'SUBSTRING(pref_code, 1, 2)  IN ({})'.format(
-            ', '.join(f"'{code}'" for code in pref_code)
         )
     )).df()
     clipped_busline_gdf = gpd.GeoDataFrame(
@@ -213,19 +220,23 @@ if st.button("データを取得") and (pref_levels or city_levels):
     )
     clipped_busline_gdf['tooltip'] = "バス路線"
     st.session_state['clipped_busline_gdf'] = clipped_busline_gdf
+    progress_bar.progress(4 / 7)
 
     # メッシュ人口データを取得
+    status_text.text("メッシュ人口データを取得中... (5/7)")
     clipped_meshpop_gdf = download_clipped_geometry(
         con=con, 
-        area_codes=city_code if city_levels else pref_code, 
-        boundary_name="city" if city_levels else "pref",
+        area_codes=city_code,
+        boundary_name="city",
         table_name="main_jpn.jpn_census2020_mesh5__all_kepler"
     )
     clipped_meshpop_gdf['tooltip'] = "メッシュ人口"
     clipped_meshpop_gdf = clipped_meshpop_gdf
     st.session_state['clipped_meshpop_gdf'] = clipped_meshpop_gdf
+    progress_bar.progress(5 / 7)
 
     # 町丁字人口データを取得
+    status_text.text("町丁字人口データを取得中... (6/7)")
     query_df = con.sql('''
         SELECT
             * EXCLUDE(geom),
@@ -235,8 +246,6 @@ if st.button("データを取得") and (pref_levels or city_levels):
     '''.format(
         'SUBSTRING(KEY_CODE, 1, 5) IN ({})'.format(
             ', '.join(f"'{code}'" for code in city_code)
-        ) if city_levels else 'SUBSTRING(KEY_CODE, 1, 2)  IN ({})'.format(
-            ', '.join(f"'{code}'" for code in pref_code)
         )
     )).df()
     clipped_mappop_gdf = gpd.GeoDataFrame(
@@ -246,12 +255,14 @@ if st.button("データを取得") and (pref_levels or city_levels):
     )
     clipped_mappop_gdf['tooltip'] = "町丁字人口"
     st.session_state['clipped_mappop_gdf'] = clipped_mappop_gdf
+    progress_bar.progress(6 / 7)
 
     # 行政区域データを取得
+    status_text.text("行政区域データを取得中... (7/7)")
     boundary_gdf = download_boundary_kokudo(
         con=con, 
-        area_codes=city_code if city_levels else pref_code, 
-        boundary_name="city" if city_levels else "pref"
+        area_codes=city_code,
+        boundary_name="city"
     )
     boundary_gdf['tooltip'] = "行政区域データ"
     st.session_state['boundary_gdf'] = boundary_gdf
@@ -259,6 +270,8 @@ if st.button("データを取得") and (pref_levels or city_levels):
     # 中心座標を取得
     st.session_state["center_lat"] = boundary_gdf.geometry.to_crs('EPSG:6674').centroid.to_crs('EPSG:4326').y.mean()
     st.session_state["center_lon"] = boundary_gdf.geometry.to_crs('EPSG:6674').centroid.to_crs('EPSG:4326').x.mean()
+    progress_bar.progress(7 / 7)
+    status_text.text("データ取得完了！")
 
 # データ表示・ダウンロードセクション
 if ('clipped_station_gdf' in st.session_state) \
@@ -275,7 +288,7 @@ if ('clipped_station_gdf' in st.session_state) \
 
     # まとめてzipでダウンロード
     st.markdown("### まとめてGeoJSONファイルをダウンロード")
-    zip_filename = f"ベースマップ_{'_'.join(city_levels) if city_levels else '_'.join(pref_levels)}.zip"
+    zip_filename = f"ベースマップ_{'_'.join(city_levels)}.zip"
     with st.spinner("GeoJSONファイルを生成中..."):
         import io
         import zipfile
@@ -313,7 +326,7 @@ if ('clipped_station_gdf' in st.session_state) \
     # 個別にGeoJSONでダウンロード
     st.markdown("### 各データをGeoJSONファイルでダウンロード")
     # 鉄道駅データのダウンロード
-    clipped_station_name = f"鉄道駅_{'_'.join(city_levels) if city_levels else '_'.join(pref_levels)}"
+    clipped_station_name = f"鉄道駅_{'_'.join(city_levels)}"
     st.download_button(
         label="鉄道駅をGeoJSONでダウンロード",
         data=clipped_station_gdf.to_json(),
@@ -322,7 +335,7 @@ if ('clipped_station_gdf' in st.session_state) \
         width='stretch'
     )
     # 鉄道路線データのダウンロード
-    clipped_rail_section_name = f"鉄道路線_{'_'.join(city_levels) if city_levels else '_'.join(pref_levels)}"
+    clipped_rail_section_name = f"鉄道路線_{'_'.join(city_levels)}"
     st.download_button(
         label="鉄道路線をGeoJSONでダウンロード",
         data=clipped_ralisection_gdf.to_json(),
@@ -331,7 +344,7 @@ if ('clipped_station_gdf' in st.session_state) \
         width='stretch'
     )
     # バス停データのダウンロード
-    clipped_bus_stop_name = f"バス停_{'_'.join(city_levels) if city_levels else '_'.join(pref_levels)}"
+    clipped_bus_stop_name = f"バス停_{'_'.join(city_levels)}"
     st.download_button(
         label="バス停をGeoJSONでダウンロード",
         data=clipped_busstop_gdf.to_json(),
@@ -340,7 +353,7 @@ if ('clipped_station_gdf' in st.session_state) \
         width='stretch'
     )
     # バス路線データのダウンロード
-    clipped_bus_line_name = f"バス路線_{'_'.join(city_levels) if city_levels else '_'.join(pref_levels)}"
+    clipped_bus_line_name = f"バス路線_{'_'.join(city_levels)}"
     st.download_button(
         label="バス路線をGeoJSONでダウンロード",
         data=clipped_busline_gdf.to_json(),
@@ -349,7 +362,7 @@ if ('clipped_station_gdf' in st.session_state) \
         width='stretch'
     )
     # メッシュ人口データのダウンロード
-    clipped_meshpop_name = f"メッシュ人口_{'_'.join(city_levels) if city_levels else '_'.join(pref_levels)}"
+    clipped_meshpop_name = f"メッシュ人口_{'_'.join(city_levels)}"
     st.download_button(
         label="メッシュ人口をGeoJSONでダウンロード",
         data=clipped_meshpop_gdf.to_json(),
@@ -358,7 +371,7 @@ if ('clipped_station_gdf' in st.session_state) \
         width='stretch'
     )
     # 町丁字人口データのダウンロード
-    clipped_mappop_name = f"町丁字人口_{'_'.join(city_levels) if city_levels else '_'.join(pref_levels)}"
+    clipped_mappop_name = f"町丁字人口_{'_'.join(city_levels)}"
     st.download_button(
         label="町丁字人口をGeoJSONでダウンロード",
         data=clipped_mappop_gdf.to_json(),
@@ -367,7 +380,7 @@ if ('clipped_station_gdf' in st.session_state) \
         width='stretch'
     )
     # 行政区域データのダウンロード
-    boundary_name = f"行政区域_{'_'.join(city_levels) if city_levels else '_'.join(pref_levels)}"
+    boundary_name = f"行政区域_{'_'.join(city_levels)}"
     st.download_button(
         label="行政区域をGeoJSONでダウンロード",
         data=boundary_gdf.to_json(),
